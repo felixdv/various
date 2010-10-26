@@ -1,0 +1,36 @@
+#!/usr/bin/php
+<?php
+
+/**
+ * About the easiest svn pre-commit hook that I could think of to validate
+ * that the svn commit message is of the following format:
+ *
+ * Ticket XXXXX: Message
+ */
+
+/**
+ * Outputs a message and returns an exit code other than 0
+ *
+ * @param string $message   The message to output
+ * @return void
+ */
+function output($message) {
+  fwrite(STDERR, "********************\n");
+  fwrite(STDERR, $message . "\n");
+  fwrite(STDERR, "********************\n");
+  exit(255);
+}
+
+// Get the commit message
+$output = array();
+exec("svnlook log {$argv[1]} -t {$argv[2]}", $output);
+
+// Match the pattern
+$first = $output[0];
+$pattern = "/^Ticket \d{5,}: (.*)$/";
+if(!preg_match($pattern, $first)) {
+  output("Wrong commit message! Commit messages should start with:\nTicket XXXXX: Message");
+}
+
+// If we got this far, all is good!
+exit(0);
